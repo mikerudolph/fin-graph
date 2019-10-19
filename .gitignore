@@ -1,0 +1,5 @@
+.env
+.vscode/
+.go/
+*cover.out
+fin-graph
