@@ -1,81 +1,32 @@
 package gql
 
 import (
-	iex "github.com/goinvest/iexcloud"
 	"github.com/graphql-go/graphql"
 	"github.com/mikerudolph/fin-graph/pkg/config"
 )
 
-// Root ...
+// Root ... I am root
 type Root struct {
 	Query *graphql.Object
 }
 
-// NewRoot ...
+// NewRoot returns a new root
 func NewRoot(conf config.Config) *Root {
-	client := iex.NewClient(conf.IEXKey, conf.IEXBaseURL)
+	resolver := NewResolver(conf)
 
-	resolver := Resolver{
-		iexClient: client,
+	// define a type service that will return types with associated resolve functionality
+	typeService := TypeService{
+		resolverService: resolver,
 	}
 
-	var Company = graphql.NewObject(
-		graphql.ObjectConfig{
-			Name: "Company",
-			Fields: graphql.Fields{
-				"symbol": &graphql.Field{
-					Type: graphql.String,
-				},
-				"name": &graphql.Field{
-					Type: graphql.String,
-				},
-				"exchange": &graphql.Field{
-					Type: graphql.String,
-				},
-				"industry": &graphql.Field{
-					Type: graphql.String,
-				},
-				"website": &graphql.Field{
-					Type: graphql.String,
-				},
-				"description": &graphql.Field{
-					Type: graphql.String,
-				},
-				"ceo": &graphql.Field{
-					Type: graphql.String,
-				},
-				"issueType": &graphql.Field{
-					Type: graphql.String,
-				},
-				"sector": &graphql.Field{
-					Type: graphql.String,
-				},
-				"employees": &graphql.Field{
-					Type: graphql.Int,
-				},
-				"tags": &graphql.Field{
-					Type: graphql.NewList(graphql.String),
-				},
-				"price": &graphql.Field{
-					Type: graphql.Float,
-					Args: graphql.FieldConfigArgument{
-						"symbol": &graphql.ArgumentConfig{
-							Type: graphql.String,
-						},
-					},
-					Resolve: resolver.PriceResolver,
-				},
-			},
-		},
-	)
-
+	// define a root query object with top level queries that can be executed
 	root := Root{
 		Query: graphql.NewObject(
 			graphql.ObjectConfig{
 				Name: "Query",
 				Fields: graphql.Fields{
-					"companies": &graphql.Field{
-						Type: graphql.NewList(Company),
+					"company": &graphql.Field{
+						Type: typeService.Company(),
 						Args: graphql.FieldConfigArgument{
 							"symbol": &graphql.ArgumentConfig{
 								Type: graphql.String,
